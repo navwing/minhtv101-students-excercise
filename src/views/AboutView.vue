@@ -39,7 +39,6 @@
         </tr>
       </thead>
       <tbody>
-
         <tr v-for="(student, index) in studentData" :key="index">
           <th v-for="(data, index) in student" :key="index" scope="row">{{data}}</th>
         </tr>
@@ -72,13 +71,12 @@ export default {
           });
       } else {
         axios
-          .get("http://localhost:3000/students?Họ tên=" + this.fullName)
+          .get("http://localhost:3000/students?Họ tên=" + this.fullName )
           .then((res) => {
             console.log(res);
             this.studentData = [...res.data];
           });
       }
-     
     },
   },
 };

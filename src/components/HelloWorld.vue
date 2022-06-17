@@ -118,7 +118,7 @@ export default {
           }
         });
         this.file=null
-        // đoạn xử lý data
+        // đoạn xử lý data test
       };
       console.log("reader", reader);
 
@@ -151,7 +151,5 @@ li {
 a {
   color: #42b983;
 }
-.aa{
-  border: 1px solid black;
-}
+
 </style>
