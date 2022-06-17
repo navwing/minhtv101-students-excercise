@@ -1,43 +1,138 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router" target="_blank" rel="noopener">router</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+     <img src="https://tracuutuyensinh.vn/wp-content/uploads/2020/11/logo-tracuuts-300x101.png" alt="No image" />
+    <section>
+      <input type="file" @change="onChange" />
+      <XlsxWorkbook @created="onCreated" />
+      <xlsx-read :file="file">
+        <xlsx-sheets>
+          <template #default="{ sheets }">
+            <select v-model="selectedSheet">
+              <option v-for="sheet in sheets" :key="sheet" :value="sheet">
+                {{ sheet }}
+              </option>
+            </select>
+          </template>
+        </xlsx-sheets> 
+        <xlsx-table :sheet="selectedSheet" class="aa" />
+        <!-- <xlsx-json :sheet="selectedSheet">
+          <template #default="{ collection }">
+            <div>
+              {{ collection }}
+            </div>
+          </template>
+        </xlsx-json> -->
+      </xlsx-read>
+    </section>
   </div>
 </template>
-
 <script>
+import {
+  XlsxRead,
+  XlsxTable,
+  XlsxSheets,
+  // XlsxJson,
+  XlsxWorkbook,
+  // XlsxSheet,
+  // XlsxDownload,
+} from "vue3-xlsx";
+// import XLSX from "xlsx";
+var XLSX = require("xlsx");
+import axios from "axios";
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
+  components: {
+    XlsxRead,
+    XlsxTable,
+    XlsxSheets,
+    // XlsxJson,
+    XlsxWorkbook,
+    // XlsxSheet,
+    // XlsxDownload,
+  },
+  name: "HelloWorld",
+  data() {
+    return {
+      file: null,
+      selectedSheet: null,
+      sheetName: null,
+      sheets: [{ name: "SheetOne", data: [{ c: 2 }] }],
+      collection: [{ a: 1, b: 2 }],
+    };
+  },
+  methods: {
+    onChange(event) {
+      console.log("data", this.selectedSheet)
+      const propNameArr = [
+        "STT",
+        "Trường Tiểu học",
+        "Quận / Huyện",
+        "Mã học sinh",
+        "Lớp",
+        "Họ tên",
+        "Ngày",
+        "Tháng",
+        "Năm",
+        "Giới tính",
+        "Nơi sinh",
+        "Dân tộc",
+        "Hộ khẩu thường trú",
+        "Điện thoại liên hệ",
+        "Tổng điểm năm lớp 1",
+        "Tổng điểm năm lớp 2",
+        "Tổng điểm năm lớp 3",
+        "Tổng điểm năm lớp 4",
+        "Tổng điểm năm lớp 5",
+        "Tổng điểm 5 năm",
+        "Điểm ưu tiên",
+        "Tổng điểm sơ tuyển",
+        "Ghi chú",
+      ];
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        console.log("xlsx: ", XLSX);
+        console.log("reader", e);
+        var data = new Uint8Array(e.target.result);
+        console.log("Data: ", data);
+        var workbook = XLSX.read(data, { type: "array" });
+        console.log("workbook", workbook);
+        let sheetName = workbook.SheetNames[0];
+        console.log("result", sheetName);
+        let worksheet = workbook.Sheets[sheetName];
+        console.log("worksheet", worksheet);
+        const finalData = XLSX.utils.sheet_to_json(worksheet);
+        console.log("aâ", finalData);
+        console.log("data", this.selectedSheet)
+        finalData.map((data, index) => {
+          const studentInfo = {};
+          let i = 0;
+          if (index >= 3) {
+            for (let key in data) {
+              studentInfo[propNameArr[i]] = data[key];
+              i++;
+            }
+            console.log("student:", studentInfo);
+            axios
+              .post("http://localhost:7777/students", studentInfo)
+              .then((res) => console.log(res))
+              .catch((err) => console.log(err));
+          }
+        });
+        this.file=null
+        // đoạn xử lý data
+      };
+      console.log("reader", reader);
+
+      console.log(event);
+      this.file = event.target.files ? event.target.files[0] : null;
+      reader.readAsArrayBuffer(this.file);
+      console.log(this.file);
+    },
+    addSheet() {
+      this.sheets.push({ name: this.sheetName, data: [...this.collection] });
+      this.sheetName = null;
+    }
+  },
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -55,5 +150,8 @@ li {
 }
 a {
   color: #42b983;
+}
+.aa{
+  border: 1px solid black;
 }
 </style>
